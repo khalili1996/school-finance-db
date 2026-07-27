@@ -1,0 +1,1660 @@
+﻿========== MIGRATIONS ==========
+========== MODELS ==========
+--- app\Models\Payment.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\CashboxTransaction;
+use App\Models\LedgerEntry;
+
+class Payment extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'student_id',
+        'fee_id',
+        'term_id',
+        'month_id',
+        'amount',
+        'payment_date',
+        'receipt_number',
+        'payment_method',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function studentFee()
+    {
+        return $this->belongsTo(StudentFee::class, 'fee_id');
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function month()
+    {
+        return $this->belongsTo(Month::class);
+    }
+
+    public function cashboxTransactions()
+    {
+        return $this->morphMany(CashboxTransaction::class, 'reference');
+    }
+
+    public function ledgerEntries()
+    {
+        return $this->morphMany(LedgerEntry::class, 'reference');
+    }
+}
+
+--- app\Models\Expense.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Expense extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'expense_category_id',
+        'academic_year_id',
+        'term_id',
+        'month_id',
+        'title',
+        'total_amount',
+        'paid_amount',
+        'expense_date',
+        'description',
+        'scan_file',
+        'status',
+         'quantity',
+        'unit',
+        'received_by',
+        'consumer_name',
+        'invoice_number',
+        'scan_file',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function month()
+    {
+        return $this->belongsTo(Month::class);
+    }
+
+    public function expensePayments()
+    {
+        return $this->hasMany(ExpensePayment::class);
+    }
+}
+
+--- app\Models\Income.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Income extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'income_category_id',
+        'academic_year_id',
+        'term_id',
+        'month_id',
+        'title',
+        'total_amount',
+        'received_amount',
+        'income_date',
+        'source',
+        'description',
+        'status',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(IncomeCategory::class, 'income_category_id');
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function month()
+    {
+        return $this->belongsTo(Month::class);
+    }
+
+    public function incomeReceipts()
+    {
+        return $this->hasMany(IncomeReceipt::class);
+    }
+}
+
+--- app\Models\User.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;   // â†گ ط§غŒظ† ط®ط· ط¨ط§غŒط¯ ط¨ط§ط´ط¯
+
+class User extends Authenticatable
+{
+    use Notifiable, HasRoles;             // â†گ HasRoles ط¨ط§غŒط¯ ط§غŒظ†ط¬ط§ ط¨ط§ط´ط¯
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'school_id',
+        'phone',
+        'is_active',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+}
+
+========== MULTI-TENANT FILES (containing 'school_id') ==========
+--- E:\school_finance_db\app\Models\AcademicYear.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class AcademicYear extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'name',
+        'start_date',
+        'end_date',
+        'is_active',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function terms()
+    {
+        return $this->hasMany(Term::class);
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    public function salaries()
+    {
+        return $this->hasMany(Salary::class);
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function incomes()
+    {
+        return $this->hasMany(Income::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\ActivityLog.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ActivityLog extends Model
+{
+    protected $fillable = [
+        'school_id',
+        'user_id',
+        'activity',
+        'description',
+        'ip_address',
+        'user_agent',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\AuditLog.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class AuditLog extends Model
+{
+    protected $fillable = [
+        'school_id',
+        'user_id',
+        'action',
+        'model_type',
+        'model_id',
+        'old_data',
+        'new_data',
+        'description',
+        'ip_address',
+    ];
+
+    protected $casts = [
+        'old_data' => 'array',
+        'new_data' => 'array',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * ط±ط§ط¨ط·ظ‡â€ŒغŒ ظ¾ظ„غŒâ€Œظ…ظˆط±ظپغŒع©: ط§غŒظ† ظ„ط§ع¯ ط¨ط±ط§غŒ ع©ط¯ط§ظ… ط±ع©ظˆط±ط¯ (ط¯ط§ظ†ط´â€Œط¢ظ…ظˆط²طŒ ظ‡ط²غŒظ†ظ‡طŒ ...) ط«ط¨طھ ط´ط¯ظ‡ ط§ط³طھ.
+     */
+    public function auditable()
+    {
+        return $this->morphTo('model', 'model_type', 'model_id');
+    }
+}
+
+--- E:\school_finance_db\app\Models\Cashbox.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Cashbox extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'name',
+        'type',
+        'initial_balance',
+        'current_balance',
+        'is_active',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(CashboxTransaction::class);
+    }
+
+    public function outgoingTransfers()
+    {
+        return $this->hasMany(CashboxTransfer::class, 'from_cashbox_id');
+    }
+
+    public function incomingTransfers()
+    {
+        return $this->hasMany(CashboxTransfer::class, 'to_cashbox_id');
+    }
+}
+
+--- E:\school_finance_db\app\Models\CashboxTransaction.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class CashboxTransaction extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'cashbox_id',
+        'type',
+        'amount',
+        'transaction_date',
+        'reference_type',
+        'reference_id',
+        'description',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function cashbox()
+    {
+        return $this->belongsTo(Cashbox::class);
+    }
+
+    /**
+     * ط±ط§ط¨ط·ظ‡â€ŒغŒ ظ¾ظ„غŒâ€Œظ…ظˆط±ظپغŒع© ط¨ط±ط§غŒ ط§طھطµط§ظ„ ط¨ظ‡ ظ‡ط± ظ†ظˆط¹ ظ…ط¯ظ„ ظ…ط±ط¬ط¹
+     * ظ…ط«ظ„ط§ظ‹ Payment, SalaryPayment, ExpensePayment, IncomeReceipt
+     */
+    public function reference()
+    {
+        return $this->morphTo('reference', 'reference_type', 'reference_id');
+    }
+}
+
+--- E:\school_finance_db\app\Models\CashboxTransfer.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class CashboxTransfer extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'from_cashbox_id',
+        'to_cashbox_id',
+        'amount',
+        'transfer_date',
+        'receipt_number',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function fromCashbox()
+    {
+        return $this->belongsTo(Cashbox::class, 'from_cashbox_id');
+    }
+
+    public function toCashbox()
+    {
+        return $this->belongsTo(Cashbox::class, 'to_cashbox_id');
+    }
+}
+
+--- E:\school_finance_db\app\Models\ClassRoom.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class ClassRoom extends Model
+{
+    use SoftDeletes;
+
+    // طھط¹غŒغŒظ† ظ†ط§ظ… ط¯ظ‚غŒظ‚ ط¬ط¯ظˆظ„ ط¯ط± ط¯غŒطھط§ط¨غŒط³
+    protected $table = 'classes';
+
+    protected $fillable = [
+        'school_id',
+        'name',
+        'description',
+        'is_active',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'class_id');
+    }
+}
+
+--- E:\school_finance_db\app\Models\Employee.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\EmployeeLoan;
+class Employee extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'employee_role_id',
+        'first_name',
+        'last_name',
+        'father_name',
+        'grandfather_name',
+        'national_id',
+        'birth_date',
+        'permanent_address',
+        'current_address',
+        'address',
+        'phone',
+        'secondary_phone',
+        'position',
+        'department',
+        'hire_date',
+        'contract_type',
+        'base_salary',
+        'status',
+        'employee_code',
+        'termination_date',
+        'photo',
+        'gender',
+        'education_level',
+        'field_of_study',
+    ];
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function employeeRole()
+    {
+        return $this->belongsTo(EmployeeRole::class);
+    }
+
+    public function salaryStructure()
+    {
+        return $this->hasOne(SalaryStructure::class);
+    }
+
+    public function salaries()
+    {
+        return $this->hasMany(Salary::class);
+    }
+
+    public function salaryPayments()
+    {
+        return $this->hasMany(SalaryPayment::class);
+    }
+
+    // ط±ط§ط¨ط·ظ‡â€ŒغŒ ط¬ط¯غŒط¯ ط¨ط±ط§غŒ ظ‚ط±ط¶â€Œط§ظ„ط­ط³ظ†ظ‡â€Œظ‡ط§
+    public function loans()
+    {
+        return $this->hasMany(EmployeeLoan::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\EmployeeLoan.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class EmployeeLoan extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'employee_id',
+        'total_amount',
+        'paid_amount',
+        'monthly_installment',
+        'loan_date',
+        'notes',
+        'status',
+    ];
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\EmployeeRole.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class EmployeeRole extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'name',
+        'description',
+        'is_active',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function employees()
+    {
+        // ط§غŒظ† ط±ط§ط¨ط·ظ‡ ظ‡ظ†ظˆط² ع©ط§ظ…ظ„ ظ†غŒط³طھ ع†ظˆظ† ط³طھظˆظ† employee_role_id ط¯ط± ط¬ط¯ظˆظ„ employees ظˆط¬ظˆط¯ ظ†ط¯ط§ط±ط¯
+        // ط¨ظ„ط§ظپط§طµظ„ظ‡ ط¨ط¹ط¯ ط§ط² ط°ط®غŒط±ظ‡â€ŒغŒ ط§غŒظ† ظ…ط¯ظ„طŒ غŒع© ظ…ط§غŒع¯ط±غŒط´ظ† ط¨ط±ط§غŒ ط§ظپط²ظˆط¯ظ† ط¢ظ† ظ…غŒâ€Œط³ط§ط²غŒظ….
+        return $this->hasMany(Employee::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\Enrollment.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Enrollment extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'student_id',
+        'academic_year_id',
+        'term_id',
+        'class_id',
+        'class',
+        'status',
+        'enrollment_date',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function classRoom()
+    {
+        return $this->belongsTo(ClassRoom::class, 'class_id');
+    }
+
+    public function studentFees()
+    {
+        return $this->hasMany(StudentFee::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\Expense.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Expense extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'expense_category_id',
+        'academic_year_id',
+        'term_id',
+        'month_id',
+        'title',
+        'total_amount',
+        'paid_amount',
+        'expense_date',
+        'description',
+        'scan_file',
+        'status',
+         'quantity',
+        'unit',
+        'received_by',
+        'consumer_name',
+        'invoice_number',
+        'scan_file',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function month()
+    {
+        return $this->belongsTo(Month::class);
+    }
+
+    public function expensePayments()
+    {
+        return $this->hasMany(ExpensePayment::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\ExpenseCategory.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class ExpenseCategory extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'name',
+        'description',
+        'is_active',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\ExpensePayment.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\CashboxTransaction;
+use App\Models\LedgerEntry;
+
+class ExpensePayment extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'expense_id',
+        'amount',
+        'payment_date',
+        'receipt_number',
+        'payment_method',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function expense()
+    {
+        return $this->belongsTo(Expense::class);
+    }
+
+    public function cashboxTransactions()
+    {
+        return $this->morphMany(CashboxTransaction::class, 'reference');
+    }
+
+    public function ledgerEntries()
+    {
+        return $this->morphMany(LedgerEntry::class, 'reference');
+    }
+}
+
+--- E:\school_finance_db\app\Models\FeeType.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class FeeType extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'name',
+        'description',
+        'is_optional',
+        'is_active',
+        'category',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function studentFees()
+    {
+        return $this->hasMany(StudentFee::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\Income.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Income extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'income_category_id',
+        'academic_year_id',
+        'term_id',
+        'month_id',
+        'title',
+        'total_amount',
+        'received_amount',
+        'income_date',
+        'source',
+        'description',
+        'status',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(IncomeCategory::class, 'income_category_id');
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function month()
+    {
+        return $this->belongsTo(Month::class);
+    }
+
+    public function incomeReceipts()
+    {
+        return $this->hasMany(IncomeReceipt::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\IncomeCategory.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class IncomeCategory extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'name',
+        'description',
+        'is_active',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function incomes()
+    {
+        return $this->hasMany(Income::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\IncomeReceipt.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\CashboxTransaction;
+use App\Models\LedgerEntry;
+
+class IncomeReceipt extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'income_id',
+        'amount',
+        'receipt_date',
+        'receipt_number',
+        'payment_method',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function income()
+    {
+        return $this->belongsTo(Income::class);
+    }
+
+    public function cashboxTransactions()
+    {
+        return $this->morphMany(CashboxTransaction::class, 'reference');
+    }
+
+    public function ledgerEntries()
+    {
+        return $this->morphMany(LedgerEntry::class, 'reference');
+    }
+}
+
+--- E:\school_finance_db\app\Models\LedgerEntry.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class LedgerEntry extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'entry_date',
+        'description',
+        'debit',
+        'credit',
+        'reference_type',
+        'reference_id',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    /**
+     * ط±ط§ط¨ط·ظ‡â€ŒغŒ ظ¾ظ„غŒâ€Œظ…ظˆط±ظپغŒع© ط¨ط±ط§غŒ ط§طھطµط§ظ„ ط¨ظ‡ ظ…ظ†ط¨ط¹ ظ…ط§ظ„غŒ (ظ…ط«ظ„ط§ظ‹ PaymentطŒ ExpensePayment ظˆ ...)
+     */
+    public function reference()
+    {
+        return $this->morphTo('reference', 'reference_type', 'reference_id');
+    }
+}
+
+--- E:\school_finance_db\app\Models\Month.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Month extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'name',
+        'number',
+        'type',
+        'is_active',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function studentFees()
+    {
+        return $this->hasMany(StudentFee::class);
+    }
+
+    public function salaries()
+    {
+        return $this->hasMany(Salary::class);
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function incomes()
+    {
+        return $this->hasMany(Income::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\Payment.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\CashboxTransaction;
+use App\Models\LedgerEntry;
+
+class Payment extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'student_id',
+        'fee_id',
+        'term_id',
+        'month_id',
+        'amount',
+        'payment_date',
+        'receipt_number',
+        'payment_method',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function studentFee()
+    {
+        return $this->belongsTo(StudentFee::class, 'fee_id');
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function month()
+    {
+        return $this->belongsTo(Month::class);
+    }
+
+    public function cashboxTransactions()
+    {
+        return $this->morphMany(CashboxTransaction::class, 'reference');
+    }
+
+    public function ledgerEntries()
+    {
+        return $this->morphMany(LedgerEntry::class, 'reference');
+    }
+}
+
+--- E:\school_finance_db\app\Models\Salary.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Salary extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'employee_id',
+        'academic_year_id',
+        'term_id',
+        'month_id',
+        'base_salary',
+        'overtime_amount',
+        'bonus_amount',
+        'deduction_amount',
+        'tax_amount',
+        'guarantee_amount',
+        'total_amount',
+        'paid_amount',
+        'status',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function month()
+    {
+        return $this->belongsTo(Month::class);
+    }
+
+    public function salaryPayments()
+    {
+        return $this->hasMany(SalaryPayment::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\SalaryPayment.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\CashboxTransaction;
+use App\Models\LedgerEntry;
+
+class SalaryPayment extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'salary_id',
+        'employee_id',
+        'amount',
+        'payment_date',
+        'receipt_number',
+        'payment_method',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function salary()
+    {
+        return $this->belongsTo(Salary::class);
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function cashboxTransactions()
+    {
+        return $this->morphMany(CashboxTransaction::class, 'reference');
+    }
+
+    public function ledgerEntries()
+    {
+        return $this->morphMany(LedgerEntry::class, 'reference');
+    }
+}
+
+--- E:\school_finance_db\app\Models\SalaryStructure.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class SalaryStructure extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'employee_id',
+        'base_salary',
+        'overtime_rate',
+        'bonus_default',
+        'deduction_default',
+        'tax_percent',
+        'guarantee_percent',
+        'is_active',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\Setting.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Setting extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'key',
+        'value',
+        'group',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\Student.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Student extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'guardian_id',
+        'first_name',
+        'last_name',
+        'father_name',
+        'grandfather_name',
+        'birth_year',
+        'national_id',
+        'phone',
+        'class',
+        'gender',
+        'address',
+        'enrollment_date',
+        'student_code',
+        'status',
+    ];
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function guardian()
+    {
+        return $this->belongsTo(StudentGuardian::class, 'guardian_id');
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    public function studentFees()
+    {
+        return $this->hasMany(StudentFee::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\StudentFee.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class StudentFee extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'student_id',
+        'enrollment_id',
+        'fee_type_id',
+        'term_id',
+        'month_id',
+        'amount',
+        'discount',
+        'notes',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function enrollment()
+    {
+        return $this->belongsTo(Enrollment::class);
+    }
+
+    public function feeType()
+    {
+        return $this->belongsTo(FeeType::class);
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function month()
+    {
+        return $this->belongsTo(Month::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'fee_id');
+    }
+}
+
+--- E:\school_finance_db\app\Models\StudentGuardian.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class StudentGuardian extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'full_name',
+        'relation',
+        'phone',
+        'secondary_phone',
+        'address',
+        'is_primary',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class, 'guardian_id');
+    }
+}
+
+--- E:\school_finance_db\app\Models\Term.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Term extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'school_id',
+        'academic_year_id',
+        'name',
+        'type',
+        'start_date',
+        'end_date',
+        'is_active',
+    ];
+
+    // ========== ط±ظˆط§ط¨ط· ==========
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    public function studentFees()
+    {
+        return $this->hasMany(StudentFee::class);
+    }
+
+    public function salaries()
+    {
+        return $this->hasMany(Salary::class);
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function incomes()
+    {
+        return $this->hasMany(Income::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+}
+
+--- E:\school_finance_db\app\Models\User.php ---
+<?php
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;   // â†گ ط§غŒظ† ط®ط· ط¨ط§غŒط¯ ط¨ط§ط´ط¯
+
+class User extends Authenticatable
+{
+    use Notifiable, HasRoles;             // â†گ HasRoles ط¨ط§غŒط¯ ط§غŒظ†ط¬ط§ ط¨ط§ط´ط¯
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'school_id',
+        'phone',
+        'is_active',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+}
+
+========== TRAIT/SCOPE FILES (BelongsToSchool|SchoolScope|GlobalScope) ==========
+========== AppServiceProvider ==========
+--- app\Providers\AppServiceProvider.php ---
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        //
+    }
+}
+========== PaymentController ==========
+========== DONE ==========

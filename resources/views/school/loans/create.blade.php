@@ -1,0 +1,228 @@
+@extends('layouts.admin')
+
+@section('title', 'ثبت قرض‌الحسنه جدید')
+
+@section('content')
+<div class="container-fluid px-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('school.dashboard') }}">داشبورد</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('school.loans.index') }}">قرض‌الحسنه</a></li>
+            <li class="breadcrumb-item active">ثبت جدید</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-hand-holding-heart ms-2"></i> ثبت قرض‌الحسنه جدید</h4>
+        </div>
+        <div class="card-body">
+            <form action="{{ route('school.loans.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+
+                <!-- بخش اول: اطلاعات قرض‌گیرنده -->
+                <h5 class="border-bottom pb-2 text-primary">۱. اطلاعات قرض‌گیرنده</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">انتخاب از کارمندان (اختیاری)</label>
+                        <select name="employee_id" id="employee_id" class="form-select @error('employee_id') is-invalid @enderror">
+                            <option value="">-- شخص خارج از لیست --</option>
+                            @foreach($employees as $emp)
+                                <option value="{{ $emp->id }}" {{ old('employee_id') == $emp->id ? 'selected' : '' }}>
+                                    {{ $emp->first_name }} {{ $emp->last_name }} ({{ $emp->employee_code }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('employee_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">نام <span class="text-danger">*</span></label>
+                        <input type="text" name="borrower_name" class="form-control @error('borrower_name') is-invalid @enderror" value="{{ old('borrower_name') }}">
+                        @error('borrower_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">تخلص</label>
+                        <input type="text" name="borrower_last_name" class="form-control @error('borrower_last_name') is-invalid @enderror" value="{{ old('borrower_last_name') }}">
+                        @error('borrower_last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">نام پدر</label>
+                        <input type="text" name="borrower_father_name" class="form-control @error('borrower_father_name') is-invalid @enderror" value="{{ old('borrower_father_name') }}">
+                        @error('borrower_father_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">نام پدرکلان</label>
+                        <input type="text" name="borrower_grandfather_name" class="form-control @error('borrower_grandfather_name') is-invalid @enderror" value="{{ old('borrower_grandfather_name') }}">
+                        @error('borrower_grandfather_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">شماره تذکره</label>
+                        <input type="text" name="borrower_national_id" class="form-control @error('borrower_national_id') is-invalid @enderror" value="{{ old('borrower_national_id') }}">
+                        @error('borrower_national_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">تاریخ تولد (شمسی)</label>
+                        <input type="text" name="borrower_birth_date" class="form-control @error('borrower_birth_date') is-invalid @enderror" value="{{ old('borrower_birth_date') }}" placeholder="مثلاً ۱۳۷۰/۰۱/۰۱">
+                        @error('borrower_birth_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">شماره تماس</label>
+                        <input type="text" name="borrower_phone" class="form-control @error('borrower_phone') is-invalid @enderror" value="{{ old('borrower_phone') }}">
+                        @error('borrower_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">شماره تماس اقارب</label>
+                        <input type="text" name="borrower_relative_phone" class="form-control @error('borrower_relative_phone') is-invalid @enderror" value="{{ old('borrower_relative_phone') }}">
+                        @error('borrower_relative_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+
+                <h6 class="text-secondary">سکونت اصلی</h6>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">ولایت</label>
+                        <input type="text" name="borrower_original_province" class="form-control @error('borrower_original_province') is-invalid @enderror" value="{{ old('borrower_original_province') }}">
+                        @error('borrower_original_province')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">ولسوالی</label>
+                        <input type="text" name="borrower_original_district" class="form-control @error('borrower_original_district') is-invalid @enderror" value="{{ old('borrower_original_district') }}">
+                        @error('borrower_original_district')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">قریه</label>
+                        <input type="text" name="borrower_original_village" class="form-control @error('borrower_original_village') is-invalid @enderror" value="{{ old('borrower_original_village') }}">
+                        @error('borrower_original_village')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">آدرس فعلی کامل</label>
+                        <textarea name="borrower_address" class="form-control @error('borrower_address') is-invalid @enderror" rows="2">{{ old('borrower_address') }}</textarea>
+                        @error('borrower_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">عکس قرض‌گیرنده</label>
+                        <input type="file" name="borrower_photo" class="form-control @error('borrower_photo') is-invalid @enderror" accept="image/*">
+                        @error('borrower_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <small class="text-muted">حداکثر ۲ مگابایت</small>
+                    </div>
+                </div>
+
+                <!-- بخش دوم: اطلاعات ضامن -->
+                <h5 class="border-bottom pb-2 text-warning mt-4">۲. اطلاعات ضامن</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">نام ضامن <span class="text-danger">*</span></label>
+                        <input type="text" name="guarantor_name" class="form-control @error('guarantor_name') is-invalid @enderror" value="{{ old('guarantor_name') }}">
+                        @error('guarantor_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">نام پدر</label>
+                        <input type="text" name="guarantor_father_name" class="form-control @error('guarantor_father_name') is-invalid @enderror" value="{{ old('guarantor_father_name') }}">
+                        @error('guarantor_father_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">شماره تذکره</label>
+                        <input type="text" name="guarantor_national_id" class="form-control @error('guarantor_national_id') is-invalid @enderror" value="{{ old('guarantor_national_id') }}">
+                        @error('guarantor_national_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">شماره تماس</label>
+                        <input type="text" name="guarantor_phone" class="form-control @error('guarantor_phone') is-invalid @enderror" value="{{ old('guarantor_phone') }}">
+                        @error('guarantor_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">آدرس</label>
+                        <textarea name="guarantor_address" class="form-control @error('guarantor_address') is-invalid @enderror" rows="1">{{ old('guarantor_address') }}</textarea>
+                        @error('guarantor_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">عکس ضامن</label>
+                        <input type="file" name="guarantor_photo" class="form-control @error('guarantor_photo') is-invalid @enderror" accept="image/*">
+                        @error('guarantor_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+
+                <!-- بخش سوم: جزئیات وام -->
+                <h5 class="border-bottom pb-2 text-success mt-4">۳. جزئیات وام</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">نام مرجع قرض‌الحسنه</label>
+                        <input type="text" name="loan_provider" class="form-control @error('loan_provider') is-invalid @enderror"
+                               value="{{ old('loan_provider', \App\Models\School::find(session('active_school_id', auth()->user()->school_id))->name ?? '') }}">
+                        @error('loan_provider')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <small class="text-muted">اختیاری – پیش‌فرض نام مکتب</small>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">مبلغ قرضه (افغانی) <span class="text-danger">*</span></label>
+                        <input type="number" name="amount" id="amount" class="form-control @error('amount') is-invalid @enderror" value="{{ old('amount') }}" min="1">
+                        @error('amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">مدت (ماه) <span class="text-danger">*</span></label>
+                        <input type="number" name="duration_months" id="duration_months" class="form-control @error('duration_months') is-invalid @enderror" value="{{ old('duration_months') }}" min="1">
+                        @error('duration_months')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">مبلغ هر قسط <span class="text-danger">*</span></label>
+                        <input type="number" name="installment_amount" id="installment_amount" class="form-control @error('installment_amount') is-invalid @enderror" value="{{ old('installment_amount') }}" min="1">
+                        @error('installment_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">تاریخ شروع (شمسی) <span class="text-danger">*</span></label>
+                        <input type="text" name="start_date" class="form-control @error('start_date') is-invalid @enderror" value="{{ old('start_date', \App\Helpers\JalaliHelper::todayJalali()) }}">
+                        @error('start_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">ملاحظات</label>
+                        <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="2">{{ old('notes') }}</textarea>
+                        @error('notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg px-5"><i class="fas fa-save"></i> ثبت قرض‌الحسنه</button>
+                    <a href="{{ route('school.loans.index') }}" class="btn btn-secondary btn-lg">انصراف</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+// محاسبه خودکار قسط
+document.addEventListener('DOMContentLoaded', function() {
+    const amountEl = document.getElementById('amount');
+    const durationEl = document.getElementById('duration_months');
+    const installmentEl = document.getElementById('installment_amount');
+
+    function updateInstallment() {
+        let amount = parseFloat(amountEl.value) || 0;
+        let months = parseInt(durationEl.value) || 1;
+        if (amount > 0 && months > 0) {
+            installmentEl.value = Math.ceil(amount / months);
+        }
+    }
+
+    amountEl.addEventListener('input', updateInstallment);
+    durationEl.addEventListener('input', updateInstallment);
+});
+</script>
+@endpush

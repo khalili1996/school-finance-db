@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Observers;
+
+use App\Models\CashboxTransaction;
+use App\Models\LedgerEntry;
+
+class CashboxTransactionObserver
+{
+    public function created(CashboxTransaction $transaction): void
+    {
+        $schoolId = $transaction->school_id;
+        $amount = $transaction->amount;
+        $date = $transaction->transaction_date;
+        $desc = $transaction->description ?? 'تراکنش صندوق';
+
+        switch ($transaction->type) {
+            case 'deposit':
+                LedgerEntry::create([
+                    'school_id'      => $schoolId,
+                    'entry_date'     => $date,
+                    'description'    => $desc,
+                    'debit'          => $amount,
+                    'credit'         => 0,
+                    'reference_type' => CashboxTransaction::class,
+                    'reference_id'   => $transaction->id,
+                ]);
+                LedgerEntry::create([
+                    'school_id'      => $schoolId,
+                    'entry_date'     => $date,
+                    'description'    => 'درآمد – ' . $desc,
+                    'debit'          => 0,
+                    'credit'         => $amount,
+                    'reference_type' => CashboxTransaction::class,
+                    'reference_id'   => $transaction->id,
+                ]);
+                break;
+
+            case 'withdrawal':
+                LedgerEntry::create([
+                    'school_id'      => $schoolId,
+                    'entry_date'     => $date,
+                    'description'    => 'هزینه – ' . $desc,
+                    'debit'          => $amount,
+                    'credit'         => 0,
+                    'reference_type' => CashboxTransaction::class,
+                    'reference_id'   => $transaction->id,
+                ]);
+                LedgerEntry::create([
+                    'school_id'      => $schoolId,
+                    'entry_date'     => $date,
+                    'description'    => $desc,
+                    'debit'          => 0,
+                    'credit'         => $amount,
+                    'reference_type' => CashboxTransaction::class,
+                    'reference_id'   => $transaction->id,
+                ]);
+                break;
+        }
+    }
+}
