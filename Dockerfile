@@ -1,6 +1,11 @@
 FROM php:8.4-apache
 
-# نصب پیش‌نیازها
+# غیرفعال کردن MPMهای اضافی (فقط prefork باقی می‌ماند)
+RUN rm -f /etc/apache2/mods-enabled/mpm_*
+RUN a2enmod mpm_prefork
+RUN a2enmod rewrite
+
+# نصب پیش‌نیازها و افزونه‌های PHP
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
@@ -8,11 +13,6 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
-
-# غیرفعال کردن MPMهای اضافی و فعال‌سازی prefork
-RUN a2dismod mpm_event
-RUN a2enmod mpm_prefork
-RUN a2enmod rewrite
 
 # تنظیم DocumentRoot به پوشه public لاراول
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
